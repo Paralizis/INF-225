@@ -30,7 +30,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 
+import java.sql.Time;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -102,6 +105,7 @@ public class ProyectoController {
       List<Comentario> comentarios = comentarioRepository.findComentariosProyecto(optProyecto.get());
       List<Resultado> resultados = resultadoRepository.findResultados(optProyecto.get());
       List<Usuario> usuarios = usuarioRepository.findAll();
+//      List<Usuario> no_miembro = usuarioRepository.findUsuarioNoProyecto(optProyecto.get());
       List<Job> jobs = jobRepository.findJobs(usuarioRepository.getEnabled());
       List<List<Comentario>> resultados_comentarios;
       int contador_resultados_comentarios;
@@ -112,7 +116,9 @@ public class ProyectoController {
       	resultados_comentarios = null;
       	contador_resultados_comentarios = 0;
       }
+      List<Usuario> miembros = usuarioRepository.findUsuariosProyecto(optProyecto.get());
       model.addAttribute("proyecto", optProyecto.get());
+      model.addAttribute("no_miembros", usuarios);
       model.addAttribute("usuarios", usuarios);
       model.addAttribute("comentarios", comentarios);
       model.addAttribute("resultados", resultados);
@@ -121,11 +127,95 @@ public class ProyectoController {
       model.addAttribute("contador_comentarios", comentarios.size());
       model.addAttribute("contador_resultados_comentarios", contador_resultados_comentarios);
       model.addAttribute("contador_resultados", resultados.size());
+      model.addAttribute("contador_miembros", miembros.size());
       
       //Permiso de miembro en proyecto
       model.addAttribute("miembro_jefe", (getPermiso(optProyecto.get()) == "JEFE" ? true : false));
       model.addAttribute("miembro_normal", (getPermiso(optProyecto.get()) == "MIEMBRO" ? true : false));
       model.addAttribute("miembro_mentor", (getPermiso(optProyecto.get()) == "MENTOR" ? true : false));
+      
+      //ESTADISTICAS
+      Map<String, Integer> tiempo_contador= new HashMap<String, Integer>();
+      Map<String, Integer> uso_materia_prima = new HashMap<String, Integer>();
+      Map<String, Integer> tiempo_miembros = new HashMap<String, Integer>();
+      int horas_totales = 0;
+      int minutos_totales = 0;
+      for (int i = 0; i < resultados.size(); i++) {
+          String maquina = resultados.get(i).getJob().getMaquina();
+          String materia_prima = resultados.get(i).getJob().getMateria_prima();
+          String usuario = resultados.get(i).getJob().getUsuario().getNombre();
+          int horas = resultados.get(i).getTiempo_dedicado().getHour();
+          int minutos = resultados.get(i).getTiempo_dedicado().getMinute();
+    	  horas_totales += horas;
+    	  minutos_totales += minutos;
+          if (!tiempo_contador.containsKey(maquina)) {
+        	  tiempo_contador.put(maquina, horas*60+minutos);  
+          } else {
+        	  tiempo_contador.put(maquina, horas*60+minutos+tiempo_contador.get(maquina));
+          }
+          
+          if (!uso_materia_prima.containsKey(materia_prima)) {
+        	  uso_materia_prima.put(materia_prima, 1);
+          } else {
+        	  uso_materia_prima.put(materia_prima, 1+uso_materia_prima.get(materia_prima));
+          }
+          if (!tiempo_miembros.containsKey(usuario)) {
+        	  tiempo_miembros.put(usuario, horas*60+minutos);  
+          } else {
+        	  tiempo_miembros.put(usuario, horas*60+minutos+tiempo_miembros.get(usuario));
+          }
+      }
+      horas_totales += minutos_totales/60;
+      minutos_totales = minutos_totales%60;
+      
+      //MAQUINA MAS USADA
+      int max_minutos = 0;
+      String max_maquina = "";
+      for (Map.Entry<String, Integer> entry : tiempo_contador.entrySet()) {
+    	    System.out.println(entry.getKey() + "/" + entry.getValue());
+    	    String maquina = entry.getKey();
+    	    if (max_minutos < entry.getValue()) {
+                max_minutos = entry.getValue();
+                max_maquina = entry.getKey();
+            }
+      }
+      //MATERIA PRIMA MAS USADA
+      int max_uso = 0;
+      String max_materia_prima = "";
+      for (Map.Entry<String, Integer> entry : uso_materia_prima.entrySet()) {
+  	    System.out.println(entry.getKey() + "/" + entry.getValue());
+  	    String materia_prima = entry.getKey();
+  	    if (max_uso < entry.getValue()) {
+  	    		max_uso = entry.getValue();
+              max_materia_prima = entry.getKey();
+          }
+    }
+      
+      //MIEMBRO MAS ACTIVO
+      int max_activo=0;
+      String miembro_mas_activo="";
+      for (Map.Entry<String, Integer> entry : tiempo_miembros.entrySet()) {
+  	    System.out.println(entry.getKey() + "/" + entry.getValue());
+  	    String usuario = entry.getKey();
+  	    if (max_activo < entry.getValue()) {
+  	    	max_activo = entry.getValue();
+  	    	miembro_mas_activo = entry.getKey();
+          }
+      }
+      
+      
+      
+      
+      model.addAttribute("horas_totales", horas_totales);
+      model.addAttribute("minutos_totales", minutos_totales);
+      model.addAttribute("maquina_mas_usada", max_maquina);
+      model.addAttribute("horas_maquina_mas_usada", max_minutos/60);
+      model.addAttribute("minutos_maquina_mas_usada", max_minutos%60);
+      model.addAttribute("materia_prima_mas_usada", max_materia_prima);
+      model.addAttribute("max_uso", max_uso);
+      model.addAttribute("miembro_mas_activo", miembro_mas_activo);
+      model.addAttribute("horas_miembro_mas_activo", max_activo/60);
+      model.addAttribute("minutos_miembro_mas_activo", max_activo%60);
       return "proyecto/index";
     }
 

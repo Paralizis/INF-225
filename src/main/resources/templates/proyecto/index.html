@@ -18,7 +18,7 @@
           <div class="row">
             <div class="col-md-4">
               <span class="bar" style="display: none;">5,3,9,6,5,9,7,3,5,2</span><svg class="peity" height="16" width="32"><rect fill="#1ab394" x="0" y="7.111111111111111" width="2.3" height="8.88888888888889"></rect><rect fill="#d7d7d7" x="3.3" y="10.666666666666668" width="2.3" height="5.333333333333333"></rect><rect fill="#1ab394" x="6.6" y="0" width="2.3" height="16"></rect><rect fill="#d7d7d7" x="9.899999999999999" y="5.333333333333334" width="2.3" height="10.666666666666666"></rect><rect fill="#1ab394" x="13.2" y="7.111111111111111" width="2.3" height="8.88888888888889"></rect><rect fill="#d7d7d7" x="16.5" y="0" width="2.3" height="16"></rect><rect fill="#1ab394" x="19.799999999999997" y="3.555555555555557" width="2.3" height="12.444444444444443"></rect><rect fill="#d7d7d7" x="23.099999999999998" y="10.666666666666668" width="2.3" height="5.333333333333333"></rect><rect fill="#1ab394" x="26.4" y="7.111111111111111" width="2.3" height="8.88888888888889"></rect><rect fill="#d7d7d7" x="29.7" y="12.444444444444445" width="2.3" height="3.5555555555555554"></rect></svg>
-              <h6><strong>0</strong> Miembros</h6>
+              <h6><strong>[[${contador_miembros}]]</strong> Miembros</h6>
             </div>
             <div class="col-md-4">
               <span class="line" style="display: none;">5,3,9,6,5,9,7,3,5,2</span><svg class="peity" height="16" width="32"><polygon fill="#1ab394" points="0 15 0 7.166666666666666 3.5555555555555554 10.5 7.111111111111111 0.5 10.666666666666666 5.5 14.222222222222221 7.166666666666666 17.77777777777778 0.5 21.333333333333332 3.833333333333332 24.888888888888886 10.5 28.444444444444443 7.166666666666666 32 12.166666666666666 32 15"></polygon><polyline fill="transparent" points="0 7.166666666666666 3.5555555555555554 10.5 7.111111111111111 0.5 10.666666666666666 5.5 14.222222222222221 7.166666666666666 17.77777777777778 0.5 21.333333333333332 3.833333333333332 24.888888888888886 10.5 28.444444444444443 7.166666666666666 32 12.166666666666666" stroke="#169c81" stroke-width="1" stroke-linecap="square"></polyline></svg>
@@ -32,7 +32,7 @@
           <div class="row">
             <div class="col-md-12">
               <button th:if="${admin or ayudante or miembro_jefe}" type="button" class="btn btn-primary btn-sm btn-block mt-2 mb-1" data-toggle="modal" data-target="#agregar_miembros"><i class="fa fa-users"></i> Agregar miembro</button>
-              <form action="#" th:if="${admin}" th:action="@{'/proyecto/edit/' + ${proyecto.id}}">
+              <form action="#" th:if="${admin or miembro_jefe}" th:action="@{'/proyecto/edit/' + ${proyecto.id}}">
                 <button type="submit" class="btn btn-info btn-sm btn-block"><i class="fa fa-edit"></i> Editar</button>
               </form>
               <!-- MODAL (CREAR FRAGMENTO) -->
@@ -45,7 +45,7 @@
 		                    <div class="form-group">
 		                    	<label for="usuario">Usuario:</label>
 		                      <select class="form-control" th:field="*{usuario}" required>                      
-		                      	<option th:each="usuario_disponible : ${usuarios}" th:value="${usuario_disponible.id}" th:text="${usuario_disponible.getNombre()}">
+		                      	<option th:each="usuario_disponible : ${no_miembros}" th:value="${usuario_disponible.id}" th:text="${usuario_disponible.getNombre()}">
 		                      	</option>
 		                      </select>
 		                    </div>
@@ -57,7 +57,7 @@
 										            th:each="TIPO : ${T(celsius.Model.UsuarioProyecto.Tipo).values()}"
 										            th:for="${#ids.next('tipo')}"
 										            th:classappend="'btn btn-outline-'+${TIPO.etiqueta}">
-										            <input type="radio"th:name="TIPO" th:field="*{tipo}" th:text="${TIPO.nombre}" th:value="${{TIPO}}" />
+										            <input type="radio"th:name="TIPO" th:field="*{tipo}" th:text="${TIPO.nombre}" th:value="${{TIPO}}" required/>
 										            <span th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}"></span>
 										          </label>
 								        		</div>
@@ -187,7 +187,7 @@
 		                    </div>
 		                    <div class="form-group">
 		                      <label for="tiempo_dedicado">Tiempo dedicado:</label>
-		                      <input type="time" class="form-control" th:field="*{tiempo_dedicado}" required></input>
+		                      <input type="time" class="form-control without_ampm" th:field="*{tiempo_dedicado}" min="00:00" max="11:59" required></input>
 		                    </div>
 		                    <!-- <div class="newjob">
 		                    </div>
@@ -318,15 +318,27 @@
 		              <div class="col-lg-6">
 		              	<dl class="row mb-0">
 		              		<div class="col-sm-6 text-sm-right"><dt>Horas totales trabajadas:</dt></div>
-		              		<div class="col-sm-6 text-sm-left"><dd class="mb-0">[[${resultados.size()}]]</dd></div>
+		              		<div class="col-sm-6 text-sm-left"><dd class="mb-0">[[${horas_totales}]]:[[${minutos_totales}]]</dd></div>
 		              	</dl>
 		              	<dl class="row mb-0">
 		              		<div class="col-sm-6 text-sm-right"><dt>Máquinas más usadas:</dt></div>
-		              		<div class="col-sm-6 text-sm-left"><dd class="mb-0">[[${resultados.size()}]]</dd></div>
+		              		<div class="col-sm-6 text-sm-left"><dd class="mb-0">[[${maquina_mas_usada}]]</dd></div>
+		              	</dl>
+		              	<dl class="row mb-0">
+		              		<div class="col-sm-6 text-sm-right"><dt>Tiempo usado en máquina más usada:</dt></div>
+		              		<div class="col-sm-6 text-sm-left"><dd class="mb-0">[[${horas_maquina_mas_usada}]]:[[${minutos_maquina_mas_usada}]]</dd></div>
 		              	</dl>
 		              	<dl class="row mb-0">
 		              		<div class="col-sm-6 text-sm-right"><dt>Materias primas usadas:</dt></div>
-		              		<div class="col-sm-6 text-sm-left"><dd class="mb-0">[[${resultados.size()}]]</dd></div>
+		              		<div class="col-sm-6 text-sm-left"><dd class="mb-0">[[${materia_prima_mas_usada}]]</dd></div>
+		              	</dl>
+		              	<dl class="row mb-0">
+		              		<div class="col-sm-6 text-sm-right"><dt>Miembro mas activo:</dt></div>
+		              		<div class="col-sm-6 text-sm-left"><dd class="mb-0">[[${miembro_mas_activo}]]</dd></div>
+		              	</dl>
+		              	<dl class="row mb-0">
+		              		<div class="col-sm-6 text-sm-right"><dt>Tiempo del miembro mas activo:</dt></div>
+		              		<div class="col-sm-6 text-sm-left"><dd class="mb-0">[[${horas_miembro_mas_activo}]]:[[${minutos_miembro_mas_activo}]]</dd></div>
 		              	</dl>
 		              </div>
 	              </div>

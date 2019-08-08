@@ -25,8 +25,6 @@ import java.util.stream.Stream;
 @Setter(AccessLevel.PUBLIC)
 @Getter(AccessLevel.PUBLIC)
 @Entity
-@NaturalIdCache
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Proyecto extends Auditable<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -36,7 +36,31 @@ public class Auditable<U> {
     private Date fecha_creacion;
 
 
-    @LastModifiedDate
+ 
+	@LastModifiedDate
     @Column(name = "fecha_modificacion")
     private Date fecha_modificacion;
+	
+	
+	
+	   public Date getFecha_creacion() {
+			return fecha_creacion;
+		}
+
+
+		public void setFecha_creacion(Date fecha_creacion) {
+			this.fecha_creacion = fecha_creacion;
+		}
+
+
+		public Date getFecha_modificacion() {
+			return fecha_modificacion;
+		}
+
+
+		public void setFecha_modificacion(Date fecha_modificacion) {
+			this.fecha_modificacion = fecha_modificacion;
+		}
+
+
 }

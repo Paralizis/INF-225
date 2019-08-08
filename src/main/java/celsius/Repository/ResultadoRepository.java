@@ -13,4 +13,6 @@ public interface ResultadoRepository extends JpaRepository<Resultado,Long> {
 
 	@Query("SELECT r FROM Resultado r WHERE r.proyecto = :proyecto")
 	public List<Resultado> findResultados(@Param("proyecto") Proyecto proyecto);
+
+	public Resultado findByProyecto(Proyecto proyecto);
 }
